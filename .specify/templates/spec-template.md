@@ -31,6 +31,8 @@
 
 **Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
 
+**Verification Evidence**: [Describe the observable proof that this story works, e.g., automated test, smoke check, or manual acceptance check]
+
 **Acceptance Scenarios**:
 
 1. **Given** [initial state], **When** [action], **Then** [expected outcome]
@@ -46,6 +48,8 @@
 
 **Independent Test**: [Describe how this can be tested independently]
 
+**Verification Evidence**: [Describe the observable proof that this story works]
+
 **Acceptance Scenarios**:
 
 1. **Given** [initial state], **When** [action], **Then** [expected outcome]
@@ -59,6 +63,8 @@
 **Why this priority**: [Explain the value and why it has this priority level]
 
 **Independent Test**: [Describe how this can be tested independently]
+
+**Verification Evidence**: [Describe the observable proof that this story works]
 
 **Acceptance Scenarios**:
 
@@ -116,6 +122,11 @@
 - **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
 - **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
 - **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+
+### Verification Requirements
+
+- **VR-001**: [Required verification command, test, smoke check, or manual acceptance check]
+- **VR-002**: [Evidence that local-only artifacts, credentials, caches, and private agent state are not included]
 
 ## Assumptions
 

@@ -40,7 +40,19 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- **Specification First**: The linked spec defines user value, prioritized
+  scenarios, acceptance criteria, measurable outcomes, and assumptions.
+- **Reproducible Python Tooling**: Runtime, package installation, and command
+  invocation are documented. Python 3.14 and PowerShell Spec Kit scripts remain
+  the default unless this plan justifies a different stack.
+- **Testable Changes**: The plan identifies the verification path for each
+  executable behavior, including test command, smoke check, or manual
+  acceptance check.
+- **Agent Context Hygiene**: The plan avoids committing credentials, caches,
+  virtual environments, or private agent state, and updates AGENTS.md only when
+  project-wide agent guidance changes.
+- **Git Traceability**: Planned work can be committed in coherent changes that
+  map to generated tasks or Spec Kit artifacts and can be merged back to `main`.
 
 ## Project Structure
 
