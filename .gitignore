@@ -1,0 +1,6 @@
+.venv/
+.venv314/
+
+.agents/*
+!.agents/skills/
+!.agents/skills/**
