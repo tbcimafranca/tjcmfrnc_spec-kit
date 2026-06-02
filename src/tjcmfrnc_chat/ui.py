@@ -15,16 +15,17 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from .chat_client import ChatClient, build_chat_client
 from .config import RuntimeConfig
 from .conversation import Conversation
-from .openai_client import ChatClientError, OpenAIChatClient
+from .openai_client import ChatClientError
 
 
 class ChatWorker(QObject):
     finished = pyqtSignal(str)
     failed = pyqtSignal(str)
 
-    def __init__(self, client: OpenAIChatClient, conversation: Conversation) -> None:
+    def __init__(self, client: ChatClient, conversation: Conversation) -> None:
         super().__init__()
         self._client = client
         self._conversation = conversation
@@ -42,12 +43,12 @@ class MainWindow(QMainWindow):
     def __init__(
         self,
         config: RuntimeConfig | None = None,
-        client: OpenAIChatClient | None = None,
+        client: ChatClient | None = None,
     ) -> None:
         super().__init__()
         self.config = config or RuntimeConfig.from_env()
         self.conversation = Conversation()
-        self.client = client or OpenAIChatClient(self.config)
+        self.client = client or build_chat_client(self.config)
         self._thread: QThread | None = None
         self._worker: ChatWorker | None = None
 
@@ -68,7 +69,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.history, stretch=1)
 
         self.input_box = QTextEdit()
-        self.input_box.setPlaceholderText("Message GPT-5.5...")
+        self.input_box.setPlaceholderText(f"Message {self.config.active_model}...")
         self.input_box.setFixedHeight(96)
         layout.addWidget(self.input_box)
 
@@ -145,13 +146,17 @@ class MainWindow(QMainWindow):
         self.clear_button.setEnabled(not busy)
         self.input_box.setEnabled(not busy)
         if busy:
-            self.status_label.setText(f"Assistant is responding with {self.config.model}...")
+            self.status_label.setText(
+                f"Assistant is responding with {self.config.provider}: {self.config.active_model}..."
+            )
         else:
             self._set_idle_status()
 
     def _set_idle_status(self) -> None:
-        if self.config.api_key_present:
-            self.status_label.setText(f"Ready. Model: {self.config.model}")
+        if self.config.provider == "ollama":
+            self.status_label.setText(f"Ready. Provider: Ollama. Model: {self.config.ollama_model}")
+        elif self.config.api_key_present:
+            self.status_label.setText(f"Ready. Provider: OpenAI. Model: {self.config.model}")
         else:
             self.status_label.setText("OPENAI_API_KEY is not configured. Live responses will fail.")
 
@@ -168,8 +173,8 @@ def _escape_html(value: str) -> str:
     )
 
 
-def run_app(config: RuntimeConfig | None = None) -> int:
+def run_app(config: RuntimeConfig | None = None, client: ChatClient | None = None) -> int:
     app = QApplication.instance() or QApplication([])
-    window = MainWindow(config=config)
+    window = MainWindow(config=config, client=client)
     window.show()
     return app.exec()

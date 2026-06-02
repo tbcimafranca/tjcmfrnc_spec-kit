@@ -36,12 +36,51 @@ py -3.14 -m pip install -e ".[dev]"
 
 ### Configure
 
+Option 1: create a local `.env` file from the example and replace the placeholder
+with your real key.
+
+```powershell
+Copy-Item .env.example .env
+notepad .env
+```
+
+Option 2: set environment variables for the current PowerShell session.
+
 ```powershell
 $env:OPENAI_API_KEY = "your_api_key_here"
 $env:OPENAI_MODEL = "gpt-5.5"
 ```
 
-`OPENAI_MODEL` is optional. Do not commit API keys or `.env` files.
+`OPENAI_MODEL` and `OPENAI_TIMEOUT_SECONDS` are optional. Do not commit API keys
+or `.env` files.
+
+### Local Open-Source Model
+
+You can run the app without an OpenAI API key by using Ollama with a small local
+model.
+
+1. Install Ollama from https://ollama.com/download
+2. Pull a tiny model:
+
+```powershell
+ollama pull smollm2:135m
+```
+
+Another small option:
+
+```powershell
+ollama pull qwen2.5:0.5b-instruct
+```
+
+3. Configure `.env`:
+
+```text
+CHAT_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=smollm2:135m
+```
+
+When `CHAT_PROVIDER=ollama`, `OPENAI_API_KEY` is not required.
 
 ### Run
 

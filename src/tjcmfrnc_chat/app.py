@@ -4,13 +4,15 @@ from __future__ import annotations
 
 from dotenv import load_dotenv
 
+from .chat_client import build_chat_client
 from .config import RuntimeConfig
 from .ui import run_app
 
 
 def main() -> int:
     load_dotenv()
-    return run_app(RuntimeConfig.from_env())
+    config = RuntimeConfig.from_env()
+    return run_app(config, build_chat_client(config))
 
 
 if __name__ == "__main__":
