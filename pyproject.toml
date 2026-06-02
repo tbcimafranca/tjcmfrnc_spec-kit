@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=70"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tjcmfrnc-chat"
+version = "0.1.0"
+description = "A PyQt desktop chat app backed by OpenAI GPT-5.5"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "openai>=2.0.0",
+    "PyQt6>=6.8.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+tjcmfrnc-chat = "tjcmfrnc_chat.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
