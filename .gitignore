@@ -1,5 +1,12 @@
 .venv/
 .venv314/
+.env
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+pytest-cache-files-*/
+*.egg-info/
 
 .agents/*
 !.agents/skills/
