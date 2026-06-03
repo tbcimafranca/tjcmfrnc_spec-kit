@@ -6,6 +6,7 @@ from tjcmfrnc_chat.config import RuntimeConfig
 from tjcmfrnc_chat.conversation import Conversation
 from tjcmfrnc_chat.ollama_client import OllamaChatClient
 from tjcmfrnc_chat.openai_client import ChatClientError
+from tjcmfrnc_chat.prompts import ASSISTANT_SYSTEM_PROMPT
 
 
 class FakeHTTPResponse:
@@ -60,11 +61,7 @@ def test_ollama_send_posts_chat_payload(monkeypatch: pytest.MonkeyPatch) -> None
                 "messages": [
                     {
                         "role": "system",
-                        "content": (
-                            "You are a helpful desktop chat assistant. Explain things "
-                            "clearly with a bit more detail. Use examples when helpful, "
-                            "but avoid repeating symbols or words."
-                        ),
+                        "content": ASSISTANT_SYSTEM_PROMPT,
                     },
                     {"role": "user", "content": "hello"},
                 ],

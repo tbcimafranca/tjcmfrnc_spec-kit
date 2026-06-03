@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from .config import RuntimeConfig
 from .conversation import Conversation
 from .openai_client import ChatClientError
+from .prompts import ASSISTANT_SYSTEM_PROMPT
 
 
 @dataclass
@@ -22,11 +23,7 @@ class OllamaChatClient:
             "messages": [
                 {
                     "role": "system",
-                    "content": (
-                        "You are a helpful desktop chat assistant. Explain things "
-                        "clearly with a bit more detail. Use examples when helpful, "
-                        "but avoid repeating symbols or words."
-                    ),
+                    "content": ASSISTANT_SYSTEM_PROMPT,
                 },
                 *conversation.to_openai_input(),
             ],

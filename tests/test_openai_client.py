@@ -5,6 +5,7 @@ import pytest
 from tjcmfrnc_chat.config import RuntimeConfig
 from tjcmfrnc_chat.conversation import Conversation
 from tjcmfrnc_chat.openai_client import ChatClientError, OpenAIChatClient
+from tjcmfrnc_chat.prompts import ASSISTANT_SYSTEM_PROMPT
 
 
 class FakeResponses:
@@ -35,7 +36,10 @@ def test_send_uses_configured_model_and_conversation_input() -> None:
     assert fake.calls == [
         {
             "model": "gpt-5.5",
-            "input": [{"role": "user", "content": "hello"}],
+            "input": [
+                {"role": "system", "content": ASSISTANT_SYSTEM_PROMPT},
+                {"role": "user", "content": "hello"},
+            ],
         }
     ]
 

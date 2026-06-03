@@ -7,6 +7,7 @@ from typing import Protocol
 
 from .config import RuntimeConfig
 from .conversation import Conversation
+from .prompts import ASSISTANT_SYSTEM_PROMPT
 
 
 class ChatClientError(RuntimeError):
@@ -31,7 +32,10 @@ class OpenAIChatClient:
         try:
             response = responses.create(
                 model=self.config.model,
-                input=conversation.to_openai_input(),
+                input=[
+                    {"role": "system", "content": ASSISTANT_SYSTEM_PROMPT},
+                    *conversation.to_openai_input(),
+                ],
             )
         except Exception as exc:  # pragma: no cover - exact SDK exceptions vary
             raise ChatClientError("Assistant request failed. Check your connection and API configuration.") from exc

@@ -6,6 +6,8 @@ import pytest
 
 pytest.importorskip("PyQt6")
 
+from PyQt6.QtCore import QEvent, Qt
+from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from tjcmfrnc_chat.config import RuntimeConfig
@@ -71,6 +73,41 @@ def test_send_message_appends_user_and_assistant(app: QApplication) -> None:
     assert "Assistant:" in window.history.toPlainText()
     assert "hello back" in window.history.toPlainText()
     assert client.inputs[0] == [{"role": "user", "content": "hello"}]
+
+
+def test_enter_key_sends_message(app: QApplication) -> None:
+    client = FakeClient(reply="keyboard reply")
+    window = MainWindow(RuntimeConfig(api_key="sk-test", model="gpt-5.5"), client=client)  # type: ignore[arg-type]
+
+    window.input_box.setPlainText("from keyboard")
+    event = QKeyEvent(
+        QEvent.Type.KeyPress,
+        Qt.Key.Key_Return,
+        Qt.KeyboardModifier.NoModifier,
+    )
+    QApplication.sendEvent(window.input_box, event)
+    wait_for_worker(app, window)
+
+    assert event.isAccepted()
+    assert "from keyboard" in window.history.toPlainText()
+    assert "keyboard reply" in window.history.toPlainText()
+    assert client.inputs[0] == [{"role": "user", "content": "from keyboard"}]
+
+
+def test_shift_enter_keeps_newline_in_input(app: QApplication) -> None:
+    window = MainWindow(RuntimeConfig(api_key="sk-test", model="gpt-5.5"), client=FakeClient())  # type: ignore[arg-type]
+
+    window.input_box.setPlainText("line one")
+    window.input_box.moveCursor(window.input_box.textCursor().MoveOperation.End)
+    event = QKeyEvent(
+        QEvent.Type.KeyPress,
+        Qt.Key.Key_Return,
+        Qt.KeyboardModifier.ShiftModifier,
+    )
+    QApplication.sendEvent(window.input_box, event)
+
+    assert window._thread is None  # noqa: SLF001
+    assert window.input_box.toPlainText() == "line one\n"
 
 
 def test_thinking_indicator_is_visible_while_waiting(app: QApplication) -> None:

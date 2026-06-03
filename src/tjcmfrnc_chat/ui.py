@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from PyQt6.QtCore import QObject, QThread, QTimer, pyqtSignal
+from PyQt6.QtCore import QObject, QThread, QTimer, Qt, pyqtSignal
+from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -37,6 +38,19 @@ class ChatWorker(QObject):
             self.failed.emit(str(exc))
         except Exception:
             self.failed.emit("Unexpected assistant error.")
+
+
+class PromptInput(QTextEdit):
+    submit_requested = pyqtSignal()
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:  # noqa: N802
+        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter) and not (
+            event.modifiers() & Qt.KeyboardModifier.ShiftModifier
+        ):
+            self.submit_requested.emit()
+            event.accept()
+            return
+        super().keyPressEvent(event)
 
 
 class MainWindow(QMainWindow):
@@ -97,9 +111,10 @@ class MainWindow(QMainWindow):
         self.thinking_label.setVisible(False)
         layout.addWidget(self.thinking_label)
 
-        self.input_box = QTextEdit()
+        self.input_box = PromptInput()
         self.input_box.setPlaceholderText(f"Message {self.config.active_model}...")
         self.input_box.setFixedHeight(96)
+        self.input_box.submit_requested.connect(self.send_message)
         layout.addWidget(self.input_box)
 
         actions = QHBoxLayout()
