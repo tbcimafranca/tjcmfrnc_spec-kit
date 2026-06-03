@@ -14,13 +14,21 @@ from tjcmfrnc_chat.ui import MainWindow
 
 
 class FakeClient:
-    def __init__(self, reply: str = "assistant reply", exc: Exception | None = None) -> None:
+    def __init__(
+        self,
+        reply: str = "assistant reply",
+        exc: Exception | None = None,
+        delay_seconds: float = 0,
+    ) -> None:
         self.reply = reply
         self.exc = exc
+        self.delay_seconds = delay_seconds
         self.inputs: list[list[dict[str, str]]] = []
 
     def send(self, conversation: Conversation) -> str:
         self.inputs.append(conversation.to_openai_input())
+        if self.delay_seconds:
+            time.sleep(self.delay_seconds)
         if self.exc:
             raise self.exc
         return self.reply
@@ -63,6 +71,24 @@ def test_send_message_appends_user_and_assistant(app: QApplication) -> None:
     assert "Assistant:" in window.history.toPlainText()
     assert "hello back" in window.history.toPlainText()
     assert client.inputs[0] == [{"role": "user", "content": "hello"}]
+
+
+def test_thinking_indicator_is_visible_while_waiting(app: QApplication) -> None:
+    client = FakeClient(reply="done", delay_seconds=0.05)
+    window = MainWindow(RuntimeConfig(api_key="sk-test", model="gpt-5.5"), client=client)  # type: ignore[arg-type]
+
+    window.input_box.setPlainText("think")
+    window.send_message()
+
+    assert not window.thinking_label.isHidden()
+    assert "Thinking" in window.thinking_label.text()
+    first_frame = window.thinking_label.text()
+    window._advance_thinking_indicator()  # noqa: SLF001
+    assert window.thinking_label.text() != first_frame
+
+    wait_for_worker(app, window)
+
+    assert window.thinking_label.isHidden()
 
 
 def test_clear_chat_resets_history_and_context(app: QApplication) -> None:

@@ -1,5 +1,4 @@
 import json
-from io import BytesIO
 
 import pytest
 
@@ -62,8 +61,9 @@ def test_ollama_send_posts_chat_payload(monkeypatch: pytest.MonkeyPatch) -> None
                     {
                         "role": "system",
                         "content": (
-                            "You are a helpful desktop chat assistant. Answer clearly, "
-                            "briefly, and do not repeat symbols or words."
+                            "You are a helpful desktop chat assistant. Explain things "
+                            "clearly with a bit more detail. Use examples when helpful, "
+                            "but avoid repeating symbols or words."
                         ),
                     },
                     {"role": "user", "content": "hello"},

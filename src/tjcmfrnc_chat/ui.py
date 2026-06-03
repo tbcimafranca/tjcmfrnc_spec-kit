@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PyQt6.QtCore import QObject, QThread, pyqtSignal
+from PyQt6.QtCore import QObject, QThread, QTimer, pyqtSignal
 from PyQt6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -40,6 +40,19 @@ class ChatWorker(QObject):
 
 
 class MainWindow(QMainWindow):
+    THINKING_FRAMES = (
+        "Thinking .      ",
+        "Thinking  .     ",
+        "Thinking   .    ",
+        "Thinking    .   ",
+        "Thinking     .  ",
+        "Thinking      . ",
+        "Thinking     .  ",
+        "Thinking    .   ",
+        "Thinking   .    ",
+        "Thinking  .     ",
+    )
+
     def __init__(
         self,
         config: RuntimeConfig | None = None,
@@ -51,8 +64,12 @@ class MainWindow(QMainWindow):
         self.client = client or build_chat_client(self.config)
         self._thread: QThread | None = None
         self._worker: ChatWorker | None = None
+        self._thinking_frame_index = 0
+        self._thinking_timer = QTimer(self)
+        self._thinking_timer.setInterval(160)
+        self._thinking_timer.timeout.connect(self._advance_thinking_indicator)
 
-        self.setWindowTitle("tjcmfrnc GPT Chat")
+        self.setWindowTitle("Alpha Software - SWDD")
         self.resize(860, 640)
         self._build_layout()
         self._set_idle_status()
@@ -60,13 +77,25 @@ class MainWindow(QMainWindow):
     def _build_layout(self) -> None:
         root = QWidget()
         layout = QVBoxLayout(root)
+        layout.setSpacing(10)
+
+        title = QLabel("Alpha Software - SWDD")
+        title.setObjectName("titleLabel")
+        layout.addWidget(title)
 
         self.status_label = QLabel()
+        self.status_label.setObjectName("statusLabel")
         layout.addWidget(self.status_label)
 
         self.history = QTextEdit()
         self.history.setReadOnly(True)
+        self.history.setObjectName("historyBox")
         layout.addWidget(self.history, stretch=1)
+
+        self.thinking_label = QLabel()
+        self.thinking_label.setObjectName("thinkingLabel")
+        self.thinking_label.setVisible(False)
+        layout.addWidget(self.thinking_label)
 
         self.input_box = QTextEdit()
         self.input_box.setPlaceholderText(f"Message {self.config.active_model}...")
@@ -76,6 +105,7 @@ class MainWindow(QMainWindow):
         actions = QHBoxLayout()
         self.send_button = QPushButton("Send")
         self.clear_button = QPushButton("Clear")
+        self.send_button.setObjectName("primaryButton")
         self.send_button.clicked.connect(self.send_message)
         self.clear_button.clicked.connect(self.clear_chat)
         actions.addWidget(self.clear_button)
@@ -83,6 +113,39 @@ class MainWindow(QMainWindow):
         actions.addWidget(self.send_button)
         layout.addLayout(actions)
 
+        root.setStyleSheet(
+            """
+            QWidget {
+                font-family: Segoe UI, Arial, sans-serif;
+                font-size: 14px;
+            }
+            QLabel#titleLabel {
+                font-size: 20px;
+                font-weight: 600;
+            }
+            QLabel#statusLabel {
+                color: #46515c;
+            }
+            QLabel#thinkingLabel {
+                color: #0f6cbd;
+                font-family: Consolas, Cascadia Mono, monospace;
+                font-weight: 600;
+                min-height: 20px;
+            }
+            QTextEdit#historyBox {
+                background: #fbfbfb;
+                border: 1px solid #d7dde3;
+                border-radius: 6px;
+                padding: 8px;
+            }
+            QPushButton {
+                padding: 8px 14px;
+            }
+            QPushButton#primaryButton {
+                font-weight: 600;
+            }
+            """
+        )
         self.setCentralWidget(root)
 
     def send_message(self) -> None:
@@ -149,8 +212,24 @@ class MainWindow(QMainWindow):
             self.status_label.setText(
                 f"Assistant is responding with {self.config.provider}: {self.config.active_model}..."
             )
+            self._start_thinking_indicator()
         else:
+            self._stop_thinking_indicator()
             self._set_idle_status()
+
+    def _start_thinking_indicator(self) -> None:
+        self._thinking_frame_index = 0
+        self.thinking_label.setText(self.THINKING_FRAMES[self._thinking_frame_index])
+        self.thinking_label.setVisible(True)
+        self._thinking_timer.start()
+
+    def _stop_thinking_indicator(self) -> None:
+        self._thinking_timer.stop()
+        self.thinking_label.setVisible(False)
+
+    def _advance_thinking_indicator(self) -> None:
+        self._thinking_frame_index = (self._thinking_frame_index + 1) % len(self.THINKING_FRAMES)
+        self.thinking_label.setText(self.THINKING_FRAMES[self._thinking_frame_index])
 
     def _set_idle_status(self) -> None:
         if self.config.provider == "ollama":
